@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { booksService } from '../services/books';
+import { transactionsService } from '../services/transactions';
 import { Book } from '../types';
 import Loading from '../components/Loading';
 import ErrorState from '../components/ErrorState';
@@ -14,6 +15,7 @@ const BookDetail = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const [isDeleting, setIsDeleting] = useState(false);
+  const [isBuying, setIsBuying] = useState(false);
 
   useEffect(() => {
     fetchBook();
@@ -26,7 +28,7 @@ const BookDetail = () => {
     setError('');
 
     try {
-      const data = await booksService.getBook(id); // ⚡ gunakan string id
+      const data = await booksService.getBook(id);
       setBook(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch book details');
@@ -51,6 +53,28 @@ const BookDetail = () => {
     }
   };
 
+  const handleBuyNow = async () => {
+    if (!book) return;
+    if (book.stock_quantity <= 0) {
+      alert('Sorry, this book is out of stock!');
+      return;
+    }
+
+    setIsBuying(true);
+    try {
+      // Kirim transaksi ke backend
+      await transactionsService.createTransaction({
+        items: [{ book_id: book.id, quantity: 1 }],
+      });
+      alert('Transaction created successfully!');
+      navigate('/transactions');
+    } catch (err: any) {
+      alert(err.response?.data?.message || 'Failed to create transaction');
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
   if (isLoading) return <Loading message="Loading book details..." />;
   if (error) return <ErrorState message={error} onRetry={fetchBook} />;
   if (!book) return <ErrorState message="Book not found" />;
@@ -69,13 +93,12 @@ const BookDetail = () => {
 
         <div className="book-detail-content">
           <div className="book-detail-image">
-            {book.book_image ? (
+            {book.image ? (
               <img
-                src={book.book_image}
+                src={book.image}
                 alt={book.title}
                 onError={(e) => {
                   (e.target as HTMLImageElement).style.display = 'none';
-                  (e.target as HTMLImageElement).nextElementSibling?.classList.remove('hidden');
                 }}
               />
             ) : (
@@ -100,8 +123,8 @@ const BookDetail = () => {
 
               <div className="meta-item">
                 <span className="meta-label">Stock:</span>
-                <span className={`meta-value ${book.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-                  {book.stock > 0 ? book.stock : 'Out of Stock'}
+                <span className={`meta-value ${book.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                  {book.stock_quantity > 0 ? book.stock_quantity : 'Out of stock'}
                 </span>
               </div>
 
@@ -112,36 +135,33 @@ const BookDetail = () => {
                 </div>
               )}
 
-              {book.isbn && (
-                <div className="meta-item">
-                  <span className="meta-label">ISBN:</span>
-                  <span className="meta-value">{book.isbn}</span>
-                </div>
-              )}
-
               {book.publication_year && (
                 <div className="meta-item">
                   <span className="meta-label">Publication Year:</span>
                   <span className="meta-value">{book.publication_year}</span>
                 </div>
               )}
-
-              {book.condition && (
-                <div className="meta-item">
-                  <span className="meta-label">Condition:</span>
-                  <span className={`condition-badge condition-${book.condition}`}>
-                    {book.condition}
-                  </span>
-                </div>
-              )}
             </div>
 
+            <div className="book-detail-footer">
             {book.description && (
-              <div className="book-description">
-                <h3>Description</h3>
-                <p>{book.description}</p>
-              </div>
+             <div className="book-description">
+             <h3>Description</h3>
+             <p>{book.description}</p>
+            </div>
             )}
+
+            <div className="book-detail-buttons-right">
+           <Button
+              variant="primary"
+              onClick={handleBuyNow}
+              isLoading={isBuying}
+             className="buy-now-btn"
+          >
+          {isBuying ? 'Processing...' : 'Buy Now'}
+           </Button>
+          </div>
+          </div>
           </div>
         </div>
       </div>
