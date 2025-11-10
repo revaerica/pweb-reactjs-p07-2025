@@ -9,9 +9,9 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
   return (
     <div className="book-card">
       <div className="book-image-container">
-        {book.book_image ? (
+        {book.image ? (
           <img
-            src={book.book_image}
+            src={book.image}
             alt={book.title}
             className="book-image"
             onError={(e) => {
@@ -35,16 +35,10 @@ const BookCard: React.FC<BookCardProps> = ({ book }) => {
         
         <div className="book-details">
           <span className="book-price">Rp {book.price.toLocaleString()}</span>
-          <span className={`book-stock ${book.stock > 0 ? 'in-stock' : 'out-of-stock'}`}>
-            {book.stock > 0 ? `Stock: ${book.stock}` : 'Out of Stock'}
+          <span className={`book-stock_quantity ${book.stock_quantity > 0 ? 'in-stock' : 'out-of-stock'}`}>
+            {book.stock_quantity > 0 ? `Stock: ${book.stock_quantity}` : 'Out of Stock'}
           </span>
         </div>
-
-        {book.condition && (
-          <span className={`book-condition condition-${book.condition}`}>
-            {book.condition}
-          </span>
-        )}
 
         <Link to={`/books/${book.id}`} className="btn btn-primary btn-small">
           View Details
