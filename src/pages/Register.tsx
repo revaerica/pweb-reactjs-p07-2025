@@ -22,37 +22,19 @@ const Register = () => {
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name) {
-      newErrors.name = 'Name is required';
-    }
-
-    if (!formData.email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
-    }
-
-    if (!formData.password) {
-      newErrors.password = 'Password is required';
-    } else if (formData.password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
-
-    if (!formData.password_confirmation) {
-      newErrors.password_confirmation = 'Password confirmation is required';
-    } else if (formData.password !== formData.password_confirmation) {
-      newErrors.password_confirmation = 'Passwords do not match';
-    }
+    if (!formData.name) newErrors.name = 'Name is required';
+    if (!formData.email) newErrors.email = !formData.email ? 'Email is required' : /\S+@\S+\.\S+/.test(formData.email) ? '' : 'Email is invalid';
+    if (!formData.password) newErrors.password = 'Password is required';
+    else if (formData.password.length < 6) newErrors.password = 'Password must be at least 6 characters';
+    if (!formData.password_confirmation) newErrors.password_confirmation = 'Password confirmation is required';
+    else if (formData.password !== formData.password_confirmation) newErrors.password_confirmation = 'Passwords do not match';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({
-      ...formData,
-      [e.target.name]: e.target.value,
-    });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   };
 
   const handleSubmit = async (e: FormEvent) => {
@@ -64,13 +46,21 @@ const Register = () => {
     setIsLoading(true);
 
     try {
-      const response = await authService.register(formData);
+      // 🔹 Payload untuk backend: username sesuai input "name"
+      const payload = {
+        username: formData.name,
+        email: formData.email,
+        password: formData.password,
+      };
+
+      const response = await authService.register(payload);
+
+      // 🔹 Login user dan simpan user dari backend
       login(response.user, response.token);
+
       navigate('/books');
     } catch (error: any) {
-      setApiError(
-        error.response?.data?.message || 'Registration failed. Please try again.'
-      );
+      setApiError(error.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
