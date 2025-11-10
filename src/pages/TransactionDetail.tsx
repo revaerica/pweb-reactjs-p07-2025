@@ -1,13 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { transactionsService } from '../services/transactions';
-import { Transaction } from '../types';
+import { Order } from '../types';
 import Loading from '../components/Loading';
 import ErrorState from '../components/ErrorState';
 
 const TransactionDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const [transaction, setTransaction] = useState<Transaction | null>(null);
+  const [transaction, setTransaction] = useState<Order | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -22,7 +22,8 @@ const TransactionDetail = () => {
     setError('');
 
     try {
-      const data = await transactionsService.getTransaction(Number(id));
+      // 🟢 backend kamu pakai UUID string, jadi cukup kirim `id` langsung
+      const data = await transactionsService.getTransaction(id);
       setTransaction(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Failed to fetch transaction details');
@@ -51,31 +52,26 @@ const TransactionDetail = () => {
         </Link>
 
         <div className="transaction-detail-header">
-          <h1>Transaction #{transaction.id}</h1>
-          <p className="transaction-detail-date">
-            {new Date(transaction.created_at).toLocaleString()}
-          </p>
+          <h1>Transaction #{transaction.order_id}</h1>
+          <p className="transaction-detail-date"> 
+            {new Date(transaction.created_at as string).toLocaleString()}
+            </p>
         </div>
 
         <div className="transaction-detail-summary">
-          <div className="summary-item">
-            <span className="summary-label">Total Items:</span>
-            <span className="summary-value">{transaction.total_amount}</span>
-          </div>
+          {/* 🟢 total_amount & total_price dari backend */}
+          {transaction.total_amount && (
+            <div className="summary-item">
+              <span className="summary-label">Total Items:</span>
+              <span className="summary-value">{transaction.total_amount}</span>
+            </div>
+          )}
           <div className="summary-item">
             <span className="summary-label">Total Price:</span>
             <span className="summary-value price">
               Rp {transaction.total_price.toLocaleString()}
             </span>
           </div>
-          {transaction.status && (
-            <div className="summary-item">
-              <span className="summary-label">Status:</span>
-              <span className={`status-badge status-${transaction.status}`}>
-                {transaction.status}
-              </span>
-            </div>
-          )}
         </div>
 
         {transaction.items && transaction.items.length > 0 && (
@@ -83,22 +79,20 @@ const TransactionDetail = () => {
             <h2>Items</h2>
             <div className="items-list">
               {transaction.items.map((item) => (
-                <div key={item.id} className="transaction-item">
+                <div key={item.book_id} className="transaction-item">
                   <div className="item-info">
                     <h3 className="item-title">
                       {item.book?.title || 'Unknown Book'}
                     </h3>
-                    {item.book && (
-                      <p className="item-writer">by {item.book.writer}</p>
-                    )}
                   </div>
                   <div className="item-details">
                     <span className="item-quantity">Qty: {item.quantity}</span>
+                    {/* 🟢 kalau backend pakai price_each */}
                     <span className="item-price">
-                      Rp {item.price.toLocaleString()}
+                      Rp {item.price_each?.toLocaleString()}
                     </span>
                     <span className="item-subtotal">
-                      Subtotal: Rp {(item.price * item.quantity).toLocaleString()}
+                      Subtotal: Rp {(item.price_each * item.quantity).toLocaleString()}
                     </span>
                   </div>
                 </div>
