@@ -5,6 +5,7 @@ import { Genre, BookFormData } from '../types';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import Loading from '../components/Loading';
+import { genreService } from '@/services/genre';
 
 const AddBook = () => {
   const navigate = useNavigate();
@@ -16,17 +17,15 @@ const AddBook = () => {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   const [formData, setFormData] = useState<BookFormData>({
-    title: '',
-    writer: '',
-    publisher: '',
-    price: 0,
-    stock: 0,
-    genre_id: '',              // string sesuai backend
-    isbn: '',
-    description: '',
-    publication_year: undefined, // optional
-    condition: 'new',
-  });
+  title: '',
+  writer: '',
+  publisher: '',
+  price: 0,
+  stock_quantity: 0,
+  genre_id: '',
+  description: '',
+  publication_year: undefined,
+});
 
   const [imageFile, setImageFile] = useState<File | null>(null);
   const [imagePreview, setImagePreview] = useState<string>('');
@@ -35,7 +34,7 @@ const AddBook = () => {
   useEffect(() => {
     const fetchGenres = async () => {
       try {
-        const data = await booksService.getGenres();
+        const data = await genreService.getGenres();
         setGenres(data);
       } catch (error) {
         console.error('Failed to fetch genres:', error);
@@ -53,25 +52,43 @@ const AddBook = () => {
     if (!formData.title) newErrors.title = 'Title is required';
     if (!formData.writer) newErrors.writer = 'Writer is required';
     if (formData.price <= 0) newErrors.price = 'Price must be greater than 0';
-    if (formData.stock < 0) newErrors.stock = 'Stock cannot be negative';
+    if (formData.stock_quantity < 0) newErrors.stock_quantity = 'Stock cannot be negative';
     if (!formData.genre_id) newErrors.genre_id = 'Genre is required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  const [displayPrice, setDisplayPrice] = useState<string>("");
+  const [displayStock, setDisplayStock] = useState<string>("");
+
   // Handle input change
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    const { name, value } = e.target;
+  const { name, value } = e.target;
+
+  if (name === "price" || name === "stock_quantity") {
+    const cleaned = value.replace(/\D/g, "");
+
     setFormData({
       ...formData,
-      [name]: ['price', 'stock', 'publication_year'].includes(name)
-        ? Number(value)
-        : value,
+      [name]: cleaned === "" ? 0 : parseInt(cleaned, 10),
     });
-  };
+
+    const formatted = cleaned === "" ? "" : new Intl.NumberFormat("id-ID").format(Number(cleaned));
+
+    if (name === "price") setDisplayPrice(formatted);
+    else setDisplayStock(formatted);
+
+    return;
+  }
+
+  setFormData({
+    ...formData,
+    [name]: ["publication_year"].includes(name) ? Number(value) : value,
+  });
+};
 
   // Handle image
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -177,8 +194,8 @@ const AddBook = () => {
           <Input label="Publisher" name="publisher" value={formData.publisher} onChange={handleChange} placeholder="Enter publisher name" />
 
           <div className="form-row">
-            <Input label="Price *" type="number" name="price" value={formData.price} onChange={handleChange} error={errors.price} placeholder="0" />
-            <Input label="Stock *" type="number" name="stock" value={formData.stock} onChange={handleChange} error={errors.stock} placeholder="0" />
+            <Input label="Price *" type="text" name="price" value={displayPrice} onChange={handleChange} error={errors.price} placeholder="0"/>
+            <Input label="Stock *" type="text" name="stock_quantity" value={displayStock} onChange={handleChange} error={errors.stock_quantity} placeholder="0"/>
           </div>
 
           <div className="input-group">
@@ -192,17 +209,7 @@ const AddBook = () => {
             {errors.genre_id && <span className="error-message">{errors.genre_id}</span>}
           </div>
 
-          <Input label="ISBN" name="isbn" value={formData.isbn} onChange={handleChange} placeholder="Enter ISBN" />
           <Input label="Publication Year" type="number" name="publication_year" value={formData.publication_year || ''} onChange={handleChange} placeholder="YYYY" />
-
-          <div className="input-group">
-            <label className="input-label">Condition</label>
-            <select name="condition" value={formData.condition} onChange={handleChange} className="input">
-              <option value="new">New</option>
-              <option value="used">Used</option>
-              <option value="refurbished">Refurbished</option>
-            </select>
-          </div>
 
           <div className="input-group">
             <label className="input-label">Description</label>
