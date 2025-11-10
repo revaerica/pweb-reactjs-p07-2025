@@ -1,9 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
+import { useCart } from '../contexts/CartContext';
 import Button from './Button';
 
 const Navbar = () => {
   const { user, isAuthenticated, logout } = useAuth();
+  const { cart } = useCart();
   const navigate = useNavigate();
 
   const handleLogout = () => {
@@ -27,8 +29,16 @@ const Navbar = () => {
               <Link to="/transactions" className="navbar-link">
                 Transactions
               </Link>
+
+              {/* 🛒 Cart Link */}
+              <Link to="/cart" className="navbar-link cart-link">
+                🛒 Cart
+                {cart.length > 0 && (
+                  <span className="cart-badge">{cart.length}</span>
+                )}
+              </Link>
+
               <div className="navbar-user">
-                <span className="user-email">{user?.email}</span>
                 <Button
                   variant="secondary"
                   size="small"
