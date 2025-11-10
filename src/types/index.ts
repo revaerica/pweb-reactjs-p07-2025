@@ -10,10 +10,9 @@ export interface LoginCredentials {
 }
 
 export interface RegisterData {
-  name: string;
+  username: string;
   email: string;
   password: string;
-  password_confirmation: string;
 }
 
 export interface AuthResponse {
@@ -22,25 +21,23 @@ export interface AuthResponse {
 }
 
 export interface Book {
-  id: string;            // ⚡ ubah jadi string
+  id: string;           
   title: string;
   writer: string;
   publisher?: string;
   price: number;
-  stock: number;
-  genre_id: string;      // ⚡ UUID string
+  stock_quantity: number;
+  genre_id: string;     
   genre?: Genre;
-  isbn?: string;
   description?: string;
   publication_year?: number;
-  condition?: 'new' | 'used' | 'refurbished';
-  book_image?: string;
+  image?: string;
   created_at?: string;
   updated_at?: string;
 }
 
 export interface Genre {
-  id: string;            // ⚡ UUID string
+  id: string;          
   name: string;
 }
 
@@ -49,38 +46,52 @@ export interface BookFormData {
   writer: string;
   publisher?: string;
   price: number;
-  stock: number;
-  genre_id: string;      // ⚡ string sesuai dropdown UUID
-  isbn?: string;
+  stock_quantity: number;
+  genre_id: string;     
   description?: string;
   publication_year?: number;
-  condition?: 'new' | 'used' | 'refurbished';
 }
 
-export interface Transaction {
-  id: string;            // ⚡ string karena bisa UUID
-  user_id: string;       // ⚡ string
-  total_amount: number;
-  total_price: number;
-  status?: string;
-  created_at: string;
-  items?: TransactionItem[];
-}
-
-export interface TransactionItem {
-  id: string;            // ⚡ string
-  transaction_id: string; // ⚡ string
-  book_id: string;       // ⚡ string
-  book?: Book;
+export interface OrderItem {
+  book_id: string;
+  title: string;
   quantity: number;
-  price: number;
+  price_each: number;
+  subtotal: number;
+  book?: {
+    id: string;
+    title: string;
+    price: number;
+  };
 }
 
-export interface CreateTransactionData {
+export interface Order {
+  order_id: string;          
+  user_id: string;
+  total_price: number;
+  total_amount: number;
+  created_at?: string;
+  updated_at?: string;
+  items: OrderItem[];
+  user?: {
+    id: string;
+    email: string;
+  };
+}
+
+export interface CreateOrderData {
   items: {
-    book_id: string;     // ⚡ string
+    book_id: string;
     quantity: number;
   }[];
+}
+
+export interface TransactionFilters {
+  search?: string;
+  orderBy?: 'id' | 'total_amount' | 'total_price';
+  order?: 'asc' | 'desc';
+  page?: number;
+  per_page?: number;
 }
 
 export interface PaginationMeta {
@@ -98,8 +109,7 @@ export interface ApiResponse<T> {
 
 export interface BookFilters {
   search?: string;
-  condition?: string;
-  sort_by?: 'title' | 'publication_year';
+  orderBy?: 'title' | 'publication_year';
   order?: 'asc' | 'desc';
   page?: number;
   per_page?: number;
@@ -107,7 +117,7 @@ export interface BookFilters {
 
 export interface TransactionFilters {
   search?: string;
-  sort_by?: 'id' | 'total_amount' | 'total_price';
+  orderBy?: 'id' | 'total_amount' | 'total_price';
   order?: 'asc' | 'desc';
   page?: number;
   per_page?: number;
