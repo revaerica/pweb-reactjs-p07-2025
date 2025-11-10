@@ -3,23 +3,23 @@ import { LoginCredentials, RegisterData, AuthResponse, User } from '../types';
 
 export const authService = {
   async login(credentials: LoginCredentials): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/login', credentials);
-    const { token, user } = response.data;
+    const response = await api.post('/auth/login', credentials);
+    const { token, user } = response.data.data;
 
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
 
-    return response.data;
+    return { token, user };
   },
 
   async register(data: RegisterData): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>('/auth/register', data);
-    const { token, user } = response.data;
+    const response = await api.post('/auth/register', data);
+    const { token, user } = response.data.data;
 
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
 
-    return response.data;
+    return { token, user };
   },
 
   logout(): void {
@@ -32,11 +32,22 @@ export const authService = {
   },
 
   getCurrentUser(): User | null {
-    const userStr = localStorage.getItem('user');
-    return userStr ? JSON.parse(userStr) : null;
-  },
+  const userStr = localStorage.getItem('user');
+
+  if (!userStr || userStr === 'undefined' || userStr === 'null') {
+    return null;
+  }
+
+  try {
+    return JSON.parse(userStr);
+  } catch (error) {
+    console.error('Error parsing user from localStorage:', error);
+    return null;
+  }
+},
 
   isAuthenticated(): boolean {
     return !!this.getToken();
   },
+  
 };
