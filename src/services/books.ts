@@ -1,5 +1,5 @@
 import api from './api';
-import { Book, BookFormData, Genre, ApiResponse, BookFilters } from '../types';
+import { Book, BookFormData, ApiResponse, BookFilters } from '../types';
 
 export const booksService = {
   // GET all books dengan filter
@@ -7,19 +7,30 @@ export const booksService = {
     const params = new URLSearchParams();
 
     if (filters?.search) params.append('search', filters.search);
-    if (filters?.condition) params.append('condition', filters.condition);
-    if (filters?.sort_by) params.append('sort_by', filters.sort_by);
+    if (filters?.orderBy) params.append('orderBy', filters.orderBy);
     if (filters?.order) params.append('order', filters.order);
     if (filters?.page) params.append('page', filters.page.toString());
-    if (filters?.per_page) params.append('per_page', filters.per_page.toString());
+    if (filters?.per_page) params.append('limit', filters.per_page.toString());
 
-    const response = await api.get<ApiResponse<Book[]>>(`/books?${params.toString()}`);
+    const response = await api.get<ApiResponse<Book[]>>(`/books?${params.toString()}`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'If-None-Match': '',
+      },
+    });
     return response.data;
   },
 
   // GET book by ID
   async getBook(id: string): Promise<Book> {
-    const response = await api.get<{ data: Book }>(`/books/${id}`);
+    const response = await api.get<{ data: Book }>(`/books/${id}`, {
+      headers: {
+        'Cache-Control': 'no-cache',
+        'Pragma': 'no-cache',
+        'If-None-Match': '',
+      },
+    });
     return response.data.data;
   },
 
@@ -50,9 +61,4 @@ export const booksService = {
     await api.delete(`/books/${id}`);
   },
 
-  // GET all genres
-  async getGenres(): Promise<Genre[]> {
-    const response = await api.get<{ data: Genre[] }>('/genres');
-    return response.data.data;
-  },
 };
