@@ -1,4 +1,4 @@
-import { useState, FormEvent } from 'react';
+import { useState, useEffect, FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { authService } from '../services/auth';
@@ -12,23 +12,23 @@ const Login = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [apiError, setApiError] = useState('');
 
-  const { login } = useAuth();
+  const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/books');
+    }
+  }, [isAuthenticated, navigate]);
 
   const validateForm = (): boolean => {
     const newErrors: { email?: string; password?: string } = {};
 
-    if (!email) {
-      newErrors.email = 'Email is required';
-    } else if (!/\S+@\S+\.\S+/.test(email)) {
-      newErrors.email = 'Email is invalid';
-    }
+    if (!email) newErrors.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(email)) newErrors.email = 'Email is invalid';
 
-    if (!password) {
-      newErrors.password = 'Password is required';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters';
-    }
+    if (!password) newErrors.password = 'Password is required';
+    else if (password.length < 6) newErrors.password = 'Password must be at least 6 characters';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -44,12 +44,14 @@ const Login = () => {
 
     try {
       const response = await authService.login({ email, password });
+
+      // 🔹 Simpan user + token ke context
       login(response.user, response.token);
+
+      // 🔹 Langsung arahkan ke halaman utama
       navigate('/books');
     } catch (error: any) {
-      setApiError(
-        error.response?.data?.message || 'Login failed. Please try again.'
-      );
+      setApiError(error.response?.data?.message || 'Login failed. Please try again.');
     } finally {
       setIsLoading(false);
     }
