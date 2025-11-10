@@ -16,8 +16,7 @@ const BooksList = () => {
 
   const [filters, setFilters] = useState<BookFilters>({
     search: '',
-    condition: '',
-    sort_by: 'title',
+    orderBy: 'title',
     order: 'asc',
     page: 1,
     per_page: 12,
@@ -34,23 +33,29 @@ const BooksList = () => {
     setError('');
 
     try {
-      const response: ApiResponse<Book[]> = await booksService.getBooks(filters);
-      setBooks(response.data);
+      const response: ApiResponse<any> = await booksService.getBooks(filters);
 
-      if (response.meta) {
+      // ✅ FIX STRUKTUR DATA BACKEND
+      const bookData = response.data?.data ?? [];
+      const meta = response.data?.meta;
+
+      setBooks(Array.isArray(bookData) ? bookData : []);
+
+      if (meta) {
         setPagination({
-          currentPage: response.meta.current_page,
-          totalPages: response.meta.last_page,
-          total: response.meta.total,
+          currentPage: meta.page,
+          totalPages: meta.totalPages,
+          total: meta.total,
         });
       } else {
         setPagination({
           currentPage: 1,
           totalPages: 1,
-          total: response.data.length,
+          total: bookData.length,
         });
       }
     } catch (err: any) {
+      console.error(err);
       setError(err.response?.data?.message || 'Failed to fetch books');
     } finally {
       setIsLoading(false);
@@ -105,24 +110,14 @@ const BooksList = () => {
         </form>
 
         <div className="filters-row">
-          <select
-            value={filters.condition}
-            onChange={(e) => handleFilterChange('condition', e.target.value)}
-            className="filter-select"
-          >
-            <option value="">All Conditions</option>
-            <option value="new">New</option>
-            <option value="used">Used</option>
-            <option value="refurbished">Refurbished</option>
-          </select>
 
           <select
-            value={filters.sort_by}
-            onChange={(e) => handleFilterChange('sort_by', e.target.value)}
+            value={filters.orderBy}
+            onChange={(e) => handleFilterChange('orderBy', e.target.value)}
             className="filter-select"
           >
             <option value="title">Sort by Title</option>
-            <option value="publication_year">Sort by Publish Date</option>
+            <option value="publication_year">Sort by Publication Year</option>
           </select>
 
           <select
