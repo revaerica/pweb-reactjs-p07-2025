@@ -407,6 +407,26 @@ body {
   color: var(--text-secondary);
 }
 
+.book-detail-buttons-right {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.buy-now-btn {
+  background-color: #4a7c3a;
+  border: none;
+  padding: 0.75rem 1.8rem;
+  font-weight: 600;
+  font-size: 1rem;
+  color: white;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.buy-now-btn:hover {
+  background-color: #3a642e;
+}
+
 .placeholder-icon {
   font-size: 3rem;
   margin-bottom: 0.5rem;
@@ -468,30 +488,6 @@ body {
 .out-of-stock {
   background-color: #fee2e2;
   color: #991b1b;
-}
-
-.book-condition {
-  display: inline-block;
-  padding: 0.25rem 0.75rem;
-  border-radius: 12px;
-  font-size: 0.75rem;
-  margin-bottom: 1rem;
-  text-transform: capitalize;
-}
-
-.condition-new {
-  background-color: #dcfce7;
-  color: #166534;
-}
-
-.condition-used {
-  background-color: #fef3c7;
-  color: #92400e;
-}
-
-.condition-refurbished {
-  background-color: #dbeafe;
-  color: #1e40af;
 }
 
 /* ============================================
